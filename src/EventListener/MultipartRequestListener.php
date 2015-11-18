@@ -10,6 +10,12 @@ use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 
 class MultipartRequestListener
 {
+    protected $tempDir;
+    public function __construct($tempDir)
+    {
+        $this->tempDir = $tempDir;
+    }
+
     public function onKernelRequest(GetResponseEvent $event)
     {
         $request = $event->getRequest();
@@ -36,7 +42,8 @@ class MultipartRequestListener
                         $p->setValue($request, $content);
                     }
                 } else {
-                    $tmpPath = tempnam(sys_get_temp_dir(), 'MultipartRequestListener');
+                    $tmpPath = tempnam($this->tempDir, 'MultipartRequestListener');
+                    file_put_contents($tmpPath, $content);
                     $file = new File($tmpPath);
                     $request->attributes->set('_multipart_related_' . $k, $file);
                     $request->attributes->set('_multipart_related', $file);
