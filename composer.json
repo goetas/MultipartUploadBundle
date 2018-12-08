@@ -8,9 +8,18 @@
       "Nestpick\\MultipartUploadBundle\\": "src/"
     }
   },
+  "autoload-dev": {
+    "psr-4": {
+      "Nestpick\\MultipartUploadBundle\\": "tests/"
+    }
+  },
   "require": {
-    "php": ">=5.3.9",
-    "symfony/symfony": "^2.3.0"
+    "php": "^7.1",
+    "symfony/symfony": "^2.3|^3.0|^4.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^7.5",
+    "mikey179/vfsStream": "^1.6"
   },
   "extra": {
     "branch-alias": {
