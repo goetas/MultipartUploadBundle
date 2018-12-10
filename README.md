@@ -1,9 +1,17 @@
-# MultipartUploadBundle
-Symfony multipart/related content type handler
+# GoetasMultipartUploadBundle
+
+[![Build Status](https://travis-ci.org/goetas/MultipartUploadBundle.png?branch=master)](https://travis-ci.org/goetas/MultipartUploadBundle)
+[![Latest Stable Version](https://poser.pugx.org/goetas/multipart-upload-bundle/v/stable.png)](https://packagist.org/packages/goetas/multipart-upload-bundle)
+
+Symfony `multipart/related` content type handler.
+
+This bundle implements a subset of the [https://www.w3.org/Protocols/rfc1341/7_2_Multipart.html](https://www.w3.org/Protocols/rfc1341/7_2_Multipart.html) specifications 
+and allows you to deal with `Content-Type: multipart-related;` requests with Symfony.
 
 ## Install
 Run `composer require goetas/multipart-upload-bundle`
-Add bundle to symfony
+
+Add bundle to symfony (if not using symfony/flex)
 
 ## Make a Request
 Sample request
