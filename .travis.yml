@@ -9,11 +9,14 @@ php:
   - nightly
 
 env:
-  - dependencies=locked
   - dependencies=highest
   - dependencies=lowest
 
 matrix:
+  include:
+    - php: 7.2
+      env: dependencies=lock
+
   fast_finish: true
   allow_failures:
     - php: nightly
@@ -24,9 +27,14 @@ install:
 before_script:
   - if [ "$dependencies" = "lowest" ]; then composer update --prefer-lowest --prefer-stable -n; fi;
   - if [ "$dependencies" = "highest" ]; then composer update --prefer-stable -n; fi;
+  - if [ "$dependencies" = "highest" ]; then PHPUNIT_FLAGS="--coverage-clover=coverage.clover"; fi
 
 script:
-  - vendor/bin/phpunit --coverage-clover=coverage.xml
+  - vendor/bin/phpunit $PHPUNIT_FLAGS
+
+after_script:
+  - if [[ "$PHPUNIT_FLAGS" != "" ]]; then wget https://scrutinizer-ci.com/ocular.phar; fi
+  - if [[ "$PHPUNIT_FLAGS" != "" ]]; then php ocular.phar code-coverage:upload --format=php-clover coverage.clover; fi
 
 notifications:
   email:
