@@ -238,10 +238,6 @@ class MultipartRequestListener
      */
     protected function getRequestParts(Request $request, $boundary)
     {
-        if (0 === strlen($request->getContent())) {
-            throw new MultipartProcessorException('An empty body received');
-        }
-
         $contentHandler = $request->getContent(true);
 
         $delimiter = '--' . $boundary;
