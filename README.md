@@ -3,6 +3,7 @@
 [![Build Status](https://travis-ci.org/goetas/MultipartUploadBundle.png?branch=master)](https://travis-ci.org/goetas/MultipartUploadBundle)
 [![Latest Stable Version](https://poser.pugx.org/goetas/multipart-upload-bundle/v/stable.png)](https://packagist.org/packages/goetas/multipart-upload-bundle)
 [![Code Coverage](https://scrutinizer-ci.com/g/goetas/MultipartUploadBundle/badges/coverage.png)](https://scrutinizer-ci.com/g/goetas/MultipartUploadBundle/)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/goetas/MultipartUploadBundle/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/goetas/MultipartUploadBundle/?branch=master)
 
 Symfony `multipart/related` content type handler.
 
