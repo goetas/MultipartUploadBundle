@@ -45,7 +45,7 @@ Body will not bee decoded automatically, you can decode it by yourself or use [F
 ```php
 public function (Request $request)
 {
-    if ('application/javascript' == $request->headers->get('content-type)) {
+    if ('application/json' == $request->headers->get('content-type')) {
         $data = json_decode($request->getContent(), true);
     }
 }
@@ -71,7 +71,7 @@ $attachment = $request->attributes->get('attachments')[0];
 ```
 
 # Related Parts
-Parts without a `filename` will be treated `UploadedFile` object.
+Parts without a `filename` will be treated as `RelatedPart` object.
 ```php
 $part = $request->attributes->get('related-parts')[0];
 ```
@@ -83,5 +83,10 @@ $headers = $part->getHeaders()->all();
 
 Get part's content
 ```php
-$content = stream_get_contents($part->getContent());
+$content = $part->getContent();
+```
+
+Get part's content as resource
+```php
+$content = stream_get_contents($part->getContent(true));
 ```

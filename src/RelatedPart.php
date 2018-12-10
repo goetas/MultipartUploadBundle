@@ -12,7 +12,7 @@ class RelatedPart
     private $headers;
 
     /**
-     * @var resource
+     * @var string
      */
     private $content;
 
@@ -23,10 +23,7 @@ class RelatedPart
     public function __construct(string $content, array $headers = [])
     {
         $this->headers = new HeaderBag($headers);
-
-        $this->content = fopen('php://temp','rb+');
-        fwrite($this->content, $content);
-        rewind($this->content);
+        $this->content = $content;
     }
 
     /**
@@ -38,10 +35,20 @@ class RelatedPart
     }
 
     /**
-     * @return resource
+     * @param bool $asResource
+     *
+     * @return string|resource
      */
-    public function getContent()
+    public function getContent(bool $asResource = false)
     {
+        if ($asResource) {
+            $resource = fopen('php://memory','rb+');
+            fwrite($resource, $this->content);
+            rewind($resource);
+
+            return $resource;
+        }
+
         return $this->content;
     }
 }
