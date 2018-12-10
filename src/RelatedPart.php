@@ -18,9 +18,9 @@ class RelatedPart
 
     /**
      * @param array|string[] $headers
-     * @param string         $content
+     * @param string|resource $content
      */
-    public function __construct(string $content, array $headers = [])
+    public function __construct($content, array $headers = [])
     {
         $this->headers = new HeaderBag($headers);
         $this->content = $content;
@@ -42,6 +42,9 @@ class RelatedPart
     public function getContent(bool $asResource = false)
     {
         if ($asResource) {
+            if (is_resource($this->content)) {
+                return $this->content;
+            }
             $resource = fopen('php://memory', 'rb+');
             fwrite($resource, $this->content);
             rewind($resource);

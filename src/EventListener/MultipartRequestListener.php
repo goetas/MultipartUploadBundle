@@ -11,16 +11,6 @@ use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 
 class MultipartRequestListener
 {
-    protected $tempDir;
-
-    /**
-     * @param string $tempDir
-     */
-    public function __construct($tempDir)
-    {
-        $this->tempDir = $tempDir;
-    }
-
     public function onKernelRequest(GetResponseEvent $event)
     {
         try {
@@ -77,14 +67,18 @@ class MultipartRequestListener
                         $this->setRequestContent($request, $content);
                     }
                 } else {
-                    if ($filename) {
-                        if (null !== $md5Sum && md5($content) !== strtolower($md5Sum)) {
-                            $uploadError = 'MD5';
-                        }
+                    if (null !== $md5Sum && md5($content) !== strtolower($md5Sum)) {
+                        $uploadError = 'MD5';
+                    }
 
-                        $tmpPath = $this->getTempFilename();
-                        file_put_contents($tmpPath, $content);
+                    $fp = tmpfile();
+                    fwrite($fp, $content);
+                    rewind($fp);
+
+                    if ($filename) {
+                        $tmpPath = stream_get_meta_data($fp)['uri'];
                         $file = new UploadedFile($tmpPath, $filename, $mimeType, $length ?: strlen($content), $uploadError ?? null, true);
+                        @$file->ref = $fp;
 
                         if (isset($formName)) {
                             $formPath = $this->parseKey($formName);
@@ -96,7 +90,7 @@ class MultipartRequestListener
                             $attachments[] = $file;
                         }
                     } elseif (!isset($uploadError)) {
-                        $relatedParts[] = new RelatedPart($content, $parsed['headers']);
+                        $relatedParts[] = new RelatedPart($fp, $parsed['headers']);
                     }
                 }
             }
@@ -328,13 +322,5 @@ class MultipartRequestListener
         $p = new \ReflectionProperty(Request::class, 'content');
         $p->setAccessible(true);
         $p->setValue($request, $content);
-    }
-
-    /**
-     * @return string
-     */
-    private function getTempFilename()
-    {
-        return $this->tempDir . \DIRECTORY_SEPARATOR . 'MultipartRequestListener-' . sha1(uniqid('', true));
     }
 }
