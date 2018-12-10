@@ -13,10 +13,6 @@ env:
   - dependencies=lowest
 
 matrix:
-  include:
-    - php: 7.2
-      env: dependencies=locked
-
   fast_finish: true
   allow_failures:
     - php: nightly
@@ -25,7 +21,6 @@ install:
   - composer install -n
 
 before_script:
-  - if [ "$dependencies" != "locked" ]; then rm composer.lock; fi;
   - if [ "$dependencies" = "lowest" ]; then composer update --prefer-lowest --prefer-stable -n; fi;
   - if [ "$dependencies" = "highest" ]; then composer update --prefer-stable -n; fi;
   - if [ "$dependencies" = "highest" ]; then PHPUNIT_FLAGS="--coverage-clover=coverage.clover"; fi
