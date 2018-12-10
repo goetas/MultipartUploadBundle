@@ -13,8 +13,10 @@ Run `composer require goetas/multipart-upload-bundle`
 
 Add bundle to symfony (if not using symfony/flex)
 
-## Make a Request
-Sample request
+## Request format
+
+A `multipart-related` request could look like this:
+
 ```
 Host: localhost
 Content-Type: multipart-related; boundary=19D523FB
@@ -47,8 +49,8 @@ X-Custom-Header: header value
 
 --19D523FB--
 ```
-
-# Controller
+## Usage
+### Controller
 Body will not bee decoded automatically, you can decode it by yourself or use [FOSRestBundle](https://github.com/FriendsOfSymfony/FOSRestBundle) to handle it transparently 
 ```php
 public function (Request $request)
@@ -59,7 +61,7 @@ public function (Request $request)
 }
 ```
 
-# Uploaded Files
+### Uploaded Files
 Parts with `form-data; name=` and `filename=` in `Content-Disposition` part-header
 will be treated like an regular uploaded file.
 ```php
@@ -71,14 +73,14 @@ Can be used with Symfony's form builder
 $builder->add('image', FileType::class);
 ```
 
-# Attachment Files
+### Attachment Files
 Parts with `attachment; filename=` in `Content-Disposition` part-header
 will be treated as an attachment file.
 ```php
 $attachment = $request->attributes->get('attachments')[0];
 ```
 
-# Related Parts
+### Related Parts
 Parts without a `filename` will be treated as `RelatedPart` object.
 ```php
 $part = $request->attributes->get('related-parts')[0];
