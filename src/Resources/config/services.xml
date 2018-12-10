@@ -2,12 +2,9 @@
 <container xmlns="http://symfony.com/schema/dic/services"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
-    <parameters>
-        <parameter key="nestpick.multipart_upload.stream_temp_dir">%kernel.cache_dir%</parameter>
-    </parameters>
     <services>
-        <service id="nestpick.multipart_upload.request_listener" class="Nestpick\MultipartUploadBundle\EventListener\MultipartRequestListener">
-            <argument type="string">%nestpick.multipart_upload.stream_temp_dir%</argument>
+        <service id="Goetas.multipart_upload.request_listener" class="Goetas\MultipartUploadBundle\EventListener\MultipartRequestListener">
+            <argument type="string"></argument>
             <tag name="kernel.event_listener" event="kernel.request" method="onKernelRequest" priority="200"/>
         </service>
     </services>
