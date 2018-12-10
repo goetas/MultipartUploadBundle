@@ -32,7 +32,7 @@ class MultipartRequestListener
                 $message .= ': ' . $e->getMessage();
             }
 
-            $response = new Response($message, Response::HTTP_BAD_REQUEST);
+            $response = new Response($message, 400);
 
             $event->setResponse($response);
         }
