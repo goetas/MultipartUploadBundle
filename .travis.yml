@@ -17,9 +17,6 @@ matrix:
   allow_failures:
     - php: nightly
 
-install:
-  - composer install -n
-
 before_script:
   - if [[ "$dependencies" = "lowest" ]]; then composer update --prefer-lowest --prefer-stable -n; fi;
   - if [[ "$dependencies" = "highest" ]]; then composer update --prefer-stable -n; fi;
