@@ -1,10 +1,10 @@
 <?php
 
-namespace Nestpick\MultipartUploadBundle\EventListener;
+namespace Goetas\MultipartUploadBundle\EventListener;
 
-use Nestpick\MultipartUploadBundle\Exception\MultipartProcessorException;
-use Nestpick\MultipartUploadBundle\RelatedPart;
-use Nestpick\MultipartUploadBundle\TestKernel;
+use Goetas\MultipartUploadBundle\Exception\MultipartProcessorException;
+use Goetas\MultipartUploadBundle\RelatedPart;
+use Goetas\MultipartUploadBundle\TestKernel;
 use org\bovigo\vfs\vfsStream;
 use org\bovigo\vfs\vfsStreamDirectory;
 use PHPUnit\Framework\TestCase;
@@ -231,7 +231,7 @@ class MultipartRequestListenerTest extends TestCase
         /** @var RelatedPart $relatedParts */
         $relatedParts = $this->request->attributes->get('related-parts')[0];
         self::assertInstanceOf(RelatedPart::class, $relatedParts);
-        self::assertEquals($binaryContent, stream_get_contents($relatedParts->getContent()));
+        self::assertEquals($binaryContent, stream_get_contents($relatedParts->getContent(true)));
         self::assertEquals(['header' => ['Related']], $relatedParts->getHeaders()->all());
     }
 

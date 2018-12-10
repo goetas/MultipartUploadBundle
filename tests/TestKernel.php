@@ -1,6 +1,6 @@
 <?php
 
-namespace Nestpick\MultipartUploadBundle;
+namespace Goetas\MultipartUploadBundle;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\HttpKernelInterface;

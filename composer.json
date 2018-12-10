@@ -1,16 +1,16 @@
 {
-  "name": "nestpick/multipart-upload-bundle",
+  "name": "goetas/multipart-upload-bundle",
   "license": "MIT",
   "type": "library",
-  "description": "Nestpick MultipartUploadBundle",
+  "description": "Goetas MultipartUploadBundle",
   "autoload": {
     "psr-4": {
-      "Nestpick\\MultipartUploadBundle\\": "src/"
+      "Goetas\\MultipartUploadBundle\\": "src/"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "Nestpick\\MultipartUploadBundle\\": "tests/"
+      "Goetas\\MultipartUploadBundle\\": "tests/"
     }
   },
   "require": {

@@ -1,6 +1,6 @@
 <?php
 
-namespace Nestpick\MultipartUploadBundle\Exception;
+namespace Goetas\MultipartUploadBundle\Exception;
 
 class MultipartProcessorException extends \RuntimeException
 {

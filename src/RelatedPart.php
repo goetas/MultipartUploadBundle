@@ -1,6 +1,6 @@
 <?php
 
-namespace Nestpick\MultipartUploadBundle;
+namespace Goetas\MultipartUploadBundle;
 
 use Symfony\Component\HttpFoundation\HeaderBag;
 
@@ -18,7 +18,7 @@ class RelatedPart
 
     /**
      * @param array|string[] $headers
-     * @param string $content
+     * @param string         $content
      */
     public function __construct(string $content, array $headers = [])
     {
@@ -42,7 +42,7 @@ class RelatedPart
     public function getContent(bool $asResource = false)
     {
         if ($asResource) {
-            $resource = fopen('php://memory','rb+');
+            $resource = fopen('php://memory', 'rb+');
             fwrite($resource, $this->content);
             rewind($resource);
 

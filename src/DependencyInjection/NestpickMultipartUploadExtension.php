@@ -1,6 +1,6 @@
 <?php
 
-namespace Nestpick\MultipartUploadBundle\DependencyInjection;
+namespace Goetas\MultipartUploadBundle\DependencyInjection;
 
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -17,13 +17,13 @@ class NestpickMultipartUploadExtension extends Extension
         $loader = new Loader\XmlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('services.xml');
 
-        if ($container->hasParameter('nestpick.multipart_upload.stream_temp_dir')) {
-            $tempDir = $container->getParameter('nestpick.multipart_upload.stream_temp_dir');
+        if ($container->hasParameter('Goetas.multipart_upload.stream_temp_dir')) {
+            $tempDir = $container->getParameter('Goetas.multipart_upload.stream_temp_dir');
         } else {
             $tempDir = ini_get('upload_tmp_dir') ?: sys_get_temp_dir();
         }
 
-        $def = $container->getDefinition('nestpick.multipart_upload.request_listener');
+        $def = $container->getDefinition('Goetas.multipart_upload.request_listener');
         $def->setArgument(0, $tempDir);
     }
 }

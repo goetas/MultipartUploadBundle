@@ -1,9 +1,9 @@
 <?php
 
-namespace Nestpick\MultipartUploadBundle\EventListener;
+namespace Goetas\MultipartUploadBundle\EventListener;
 
-use Nestpick\MultipartUploadBundle\Exception\MultipartProcessorException;
-use Nestpick\MultipartUploadBundle\RelatedPart;
+use Goetas\MultipartUploadBundle\Exception\MultipartProcessorException;
+use Goetas\MultipartUploadBundle\RelatedPart;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;

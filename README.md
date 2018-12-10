@@ -2,7 +2,7 @@
 Symfony multipart/related content type handler
 
 ## Install
-Run `composer require nestpick/multipart-upload-bundle`
+Run `composer require goetas/multipart-upload-bundle`
 Add bundle to symfony
 
 ## Make a Request
