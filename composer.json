@@ -3,6 +3,12 @@
   "license": "MIT",
   "type": "symfony-bundle",
   "description": "Goetas MultipartUploadBundle",
+  "authors": [
+    {
+      "name": "Asmir Mustafic",
+      "email": "goetas@gmail.com"
+    }
+  ],
   "autoload": {
     "psr-4": {
       "Goetas\\MultipartUploadBundle\\": "src/"
