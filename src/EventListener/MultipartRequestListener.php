@@ -43,7 +43,7 @@ class MultipartRequestListener
         $contentType = $request->headers->get('Content-Type');
 
         if (0 === strpos($contentType, 'multipart/related')) {
-            [$onlyContentType, $boundary] = $this->getContentTypeAndBoundary($contentType);
+            list($onlyContentType, $boundary) = $this->getContentTypeAndBoundary($contentType);
 
             $parts = $this->getRequestParts($request, $boundary);
             $relatedParts = $attachments = [];

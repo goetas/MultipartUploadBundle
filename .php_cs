@@ -9,7 +9,7 @@ return PhpCsFixer\Config::create()
         'combine_consecutive_unsets' => true,
         'concat_space' => ['spacing' => 'one'],
         'function_declaration' => ['closure_function_spacing' => 'none'],
-        'list_syntax' => ['syntax' => 'short'],
+        'list_syntax' => ['syntax' => 'long'],
         'no_extra_consecutive_blank_lines' => ['break', 'continue', 'extra', 'return', 'throw', 'use', 'parenthesis_brace_block', 'square_brace_block', 'curly_brace_block'],
         'no_short_echo_tag' => true,
         'no_unreachable_default_argument_value' => true,
