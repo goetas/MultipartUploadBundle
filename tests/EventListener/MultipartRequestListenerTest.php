@@ -44,6 +44,7 @@ class MultipartRequestListenerTest extends TestCase
 
         $this->request = new Request();
         $this->event = new GetResponseEvent(new TestKernel(), $this->request, HttpKernelInterface::MASTER_REQUEST);
+        error_reporting(E_ALL);
     }
 
     /**
@@ -95,16 +96,6 @@ class MultipartRequestListenerTest extends TestCase
         $this->expectExceptionMessageRegExp('/boundary [a-z\s]* missing/i');
 
         $this->request->headers->set('Content-Type', 'multipart/related');
-
-        $this->listener->processRequest($this->request);
-    }
-
-    public function testEmptyBodyError()
-    {
-        $this->expectException(MultipartProcessorException::class);
-        $this->expectExceptionMessage('empty body');
-
-        $this->request->headers->set('Content-Type', 'multipart/related; boundary=delimiter');
 
         $this->listener->processRequest($this->request);
     }
