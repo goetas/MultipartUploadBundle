@@ -52,17 +52,21 @@ class MultipartRequestListener
                 $parsed = $this->parsePart($part);
 
                 $content = $parsed['content'];
-                $mimeType = @$parsed['headers']['content-type'];
-                $length = @$parsed['headers']['content-length'];
-                $filename = @$parsed['headers']['file-name'];
-                $formName = @$parsed['headers']['form-name'];
-                $md5Sum = @$parsed['headers']['content-md5'];
+                $mimeType = $parsed['headers']['content-type'] ?? null;
+                $length = $parsed['headers']['content-length'] ?? null;
+                $filename = $parsed['headers']['file-name'] ?? null;
+                $formName = $parsed['headers']['form-name'] ?? null;
+                $md5Sum = $parsed['headers']['content-md5'] ?? null;
 
                 if (0 === $k) {
                     $request->headers->add($parsed['headers']);
 
                     if (!$mimeType) {
                         $request->headers->remove('Content-Type');
+                    }
+
+                    if (!$length) {
+                        $request->headers->remove('Content-Length');
                     }
 
                     if ('application/x-www-form-urlencoded' === $mimeType) {
@@ -80,7 +84,7 @@ class MultipartRequestListener
 
                         $tmpPath = $this->getTempFilename();
                         file_put_contents($tmpPath, $content);
-                        $file = new UploadedFile($tmpPath, $filename, $mimeType, $length ?: strlen($content), @$uploadError, true);
+                        $file = new UploadedFile($tmpPath, $filename, $mimeType, $length ?: strlen($content), $uploadError ?? null, true);
 
                         if (isset($formName)) {
                             $formPath = $this->parseKey($formName);
@@ -117,7 +121,7 @@ class MultipartRequestListener
             }
 
             if (!empty($key)) {
-                $array[$key] = $this->mergeFilesArray(@$array[$key] ?: [], $path, $file);
+                $array[$key] = $this->mergeFilesArray($array[$key] ?? [], $path, $file);
             } else {
                 $array[] = $file;
             }
