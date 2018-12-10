@@ -1,7 +1,7 @@
 {
   "name": "goetas/multipart-upload-bundle",
   "license": "MIT",
-  "type": "library",
+  "type": "symfony-bundle",
   "description": "Goetas MultipartUploadBundle",
   "autoload": {
     "psr-4": {
