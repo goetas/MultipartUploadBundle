@@ -31,16 +31,9 @@ class MultipartRequestListenerTest extends TestCase
      */
     private $request;
 
-    /**
-     * @var vfsStreamDirectory
-     */
-    private $vfs;
-
     public function setUp()
     {
-        $this->vfs = vfsStream::setup();
-
-        $this->listener = new MultipartRequestListener($this->vfs->url());
+        $this->listener = new MultipartRequestListener();
 
         $this->request = new Request();
         $this->event = new GetResponseEvent(new TestKernel(), $this->request, HttpKernelInterface::MASTER_REQUEST);
@@ -52,9 +45,9 @@ class MultipartRequestListenerTest extends TestCase
      */
     public function testItCompile()
     {
-        $this->listener = new MultipartRequestListener($this->vfs);
+        $listener = new MultipartRequestListener();
 
-        $this->listener->onKernelRequest($this->event);
+        $listener->onKernelRequest($this->event);
     }
 
     public function testItIsProcessingRequest()

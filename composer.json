@@ -25,8 +25,7 @@
     "symfony/http-foundation": "^2.3.32|^3.0|^4.0"
   },
   "require-dev": {
-    "phpunit/phpunit": "^6.5|^7.5",
-    "mikey179/vfsStream": "^1.6"
+    "phpunit/phpunit": "^6.5|^7.5"
   },
   "extra": {
     "branch-alias": {
