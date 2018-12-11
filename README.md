@@ -53,7 +53,7 @@ X-Custom-Header: header value
 ```
 ## Usage
 ### Controller
-Body will not bee decoded automatically, you can decode it by yourself or use [FOSRestBundle](https://github.com/FriendsOfSymfony/FOSRestBundle) to handle it transparently 
+Body will not be decoded automatically, you can decode it by yourself or use [FOSRestBundle](https://github.com/FriendsOfSymfony/FOSRestBundle) to handle it transparently 
 ```php
 public function (Request $request)
 {
