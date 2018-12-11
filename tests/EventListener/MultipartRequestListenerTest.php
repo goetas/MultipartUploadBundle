@@ -5,8 +5,6 @@ namespace Goetas\MultipartUploadBundle\EventListener;
 use Goetas\MultipartUploadBundle\Exception\MultipartProcessorException;
 use Goetas\MultipartUploadBundle\RelatedPart;
 use Goetas\MultipartUploadBundle\TestKernel;
-use org\bovigo\vfs\vfsStream;
-use org\bovigo\vfs\vfsStreamDirectory;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
@@ -37,7 +35,6 @@ class MultipartRequestListenerTest extends TestCase
 
         $this->request = new Request();
         $this->event = new GetResponseEvent(new TestKernel(), $this->request, HttpKernelInterface::MASTER_REQUEST);
-        error_reporting(E_ALL);
     }
 
     /**
