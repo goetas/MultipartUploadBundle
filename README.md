@@ -35,6 +35,11 @@ Content-Disposition: form-data; name="image"; filename="image.jpg"
 Content-MD5: 314ca078416a9b27efbe338ac5a2f727
 
 ... binary content...
+Content-Type: text/html
+Content-Disposition: form-data; name="content"
+Content-MD5: 314ca078416a9b27efbe338ac5a2f727
+
+<a href="https://github.com/goetas/MultipartUploadBundle">HTML content</a>
 
 --19D523FB
 Content-Type: image/png
@@ -63,8 +68,20 @@ public function (Request $request)
 }
 ```
 
+### Form Fields
+Parts with `form-data; name=` in `Content-Disposition` part's headers
+will be treated like an regular uploaded file.
+```php
+$html = $request->request->get('content');
+```
+
+Can be used with Symfony's form builder
+```php
+$builder->add('content', TextAreaType::class);
+```
+
 ### Uploaded Files
-Parts with `form-data; name=` and `filename=` in `Content-Disposition` part-header
+Parts with `form-data; name=` and `filename=` in `Content-Disposition` part's headers
 will be treated like an regular uploaded file.
 ```php
 $file = $request->files->get('image');
@@ -76,7 +93,7 @@ $builder->add('image', FileType::class);
 ```
 
 ### Attachment Files
-Parts with `attachment; filename=` in `Content-Disposition` part-header
+Parts with `attachment; filename=` in `Content-Disposition` part's headers
 will be treated as an attachment file.
 ```php
 $attachment = $request->attributes->get('attachments')[0];
