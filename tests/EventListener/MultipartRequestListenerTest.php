@@ -216,6 +216,17 @@ class MultipartRequestListenerTest extends TestCase
         self::assertEquals(['header' => ['Related']], $relatedParts->getHeaders()->all());
     }
 
+    public function testFormDataWithoutFilename()
+    {
+        $this->request->headers->set('Content-Type', 'multipart/related; boundary=delimiter');
+        $this->setRequestContent("--delimiter\r\n\r\n\r\n--delimiter\r\nContent-Disposition:form-data; name=field[children][]\r\nContent-Type:mime/type\r\nContent-Length:7\r\nContent-Md5:F15C1CAE7882448B3FB0404682E17E61\r\n\r\nContent\r\n--delimiter--");
+
+        $this->listener->processRequest($this->request);
+
+        $value = $this->request->request->get('field')['children'][0];
+        self::assertEquals('Content', $value);
+    }
+
     public function testFileUploads()
     {
         $this->request->headers->set('Content-Type', 'multipart/related; boundary=delimiter');
@@ -223,14 +234,14 @@ class MultipartRequestListenerTest extends TestCase
 
         $this->listener->processRequest($this->request);
 
-        /** @var UploadedFile $attachment */
-        $attachment = $this->request->files->get('field')['children'][0];
-        self::assertInstanceOf(UploadedFile::class, $attachment);
-        self::assertEquals('Content', file_get_contents($attachment->getPathname()));
-        self::assertEquals('Nome file.pdf', $attachment->getClientOriginalName());
-        self::assertEquals('mime/type', $attachment->getClientMimeType());
-        self::assertEquals(7, $attachment->getClientSize());
-        self::assertEquals(0, $attachment->getError());
+        /** @var UploadedFile $file */
+        $file = $this->request->files->get('field')['children'][0];
+        self::assertInstanceOf(UploadedFile::class, $file);
+        self::assertEquals('Content', file_get_contents($file->getPathname()));
+        self::assertEquals('Nome file.pdf', $file->getClientOriginalName());
+        self::assertEquals('mime/type', $file->getClientMimeType());
+        self::assertEquals(7, $file->getClientSize());
+        self::assertEquals(0, $file->getError());
     }
 
     private function setRequestContent($content)

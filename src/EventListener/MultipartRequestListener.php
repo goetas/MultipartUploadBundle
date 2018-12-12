@@ -84,13 +84,21 @@ class MultipartRequestListener
                             $formPath = $this->parseKey($formName);
 
                             $files = $request->files->all();
-                            $files = $this->mergeFilesArray($files, $formPath, $file);
+                            $files = $this->mergeFormArray($files, $formPath, $file);
                             $request->files->replace($files);
                         } else {
                             $attachments[] = $file;
                         }
                     } elseif (!isset($uploadError)) {
-                        $relatedParts[] = new RelatedPart($fp, $parsed['headers']);
+                        if (isset($formName)) {
+                            $formPath = $this->parseKey($formName);
+
+                            $data = $request->request->all();
+                            $data = $this->mergeFormArray($data, $formPath, $content);
+                            $request->request->replace($data);
+                        } else {
+                            $relatedParts[] = new RelatedPart($fp, $parsed['headers']);
+                        }
                     }
                 }
             }
@@ -105,7 +113,7 @@ class MultipartRequestListener
         }
     }
 
-    protected function mergeFilesArray($array, $path, $file)
+    protected function mergeFormArray($array, $path, $data)
     {
         if (count($path) > 0) {
             $key = array_shift($path);
@@ -115,15 +123,15 @@ class MultipartRequestListener
             }
 
             if (!empty($key)) {
-                $array[$key] = $this->mergeFilesArray($array[$key] ?? [], $path, $file);
+                $array[$key] = $this->mergeFormArray($array[$key] ?? [], $path, $data);
             } else {
-                $array[] = $file;
+                $array[] = $data;
             }
 
             return $array;
         }
 
-        return $file;
+        return $data;
     }
 
     protected function parseKey($key)
