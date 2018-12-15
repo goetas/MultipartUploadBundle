@@ -6,6 +6,7 @@ use Goetas\MultipartUploadBundle\Exception\MultipartProcessorException;
 use Goetas\MultipartUploadBundle\RelatedPart;
 use Goetas\MultipartUploadBundle\TestKernel;
 use PHPUnit\Framework\TestCase;
+use Riverline\MultiPartParser\StreamedPart;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -47,90 +48,55 @@ class MultipartRequestListenerTest extends TestCase
         $listener->onKernelRequest($this->event);
     }
 
-    public function testItIsProcessingRequest()
-    {
-        $listener = $this->getMockBuilder(MultipartRequestListener::class)
-            ->disableOriginalConstructor()
-            ->setMethodsExcept(['onKernelRequest'])
-            ->getMock();
-
-        $listener->expects($this->once())
-            ->method('processRequest')
-            ->with($this->request);
-
-        $listener->onKernelRequest($this->event);
-    }
-
-    public function testItHandlesMultipartProcessorException()
-    {
-        $listener = $this->getMockBuilder(MultipartRequestListener::class)
-            ->disableOriginalConstructor()
-            ->setMethodsExcept(['onKernelRequest'])
-            ->getMock();
-
-        $listener->expects($this->once())
-            ->method('processRequest')
-            ->willThrowException(new MultipartProcessorException());
-
-        $listener->onKernelRequest($this->event);
-
-        $response = $this->event->getResponse();
-        self::assertInstanceOf(Response::class, $response);
-        self::assertEquals(400, $response->getStatusCode());
-        self::assertEquals('Bad Request', $response->getContent());
-    }
-
     public function testBoundaryIsNotSetError()
     {
-        $this->expectException(MultipartProcessorException::class);
-        $this->expectExceptionMessageRegExp('/boundary [a-z\s]* missing/i');
-
         $this->request->headers->set('Content-Type', 'multipart/related');
+        $this->listener->onKernelRequest($this->event);
 
-        $this->listener->processRequest($this->request);
+        self::assertSame(400, $this->event->getResponse()->getStatusCode());
     }
 
     public function testBodyWithoutBoundaryDelimiterError()
     {
-        $this->expectException(MultipartProcessorException::class);
-        $this->expectExceptionMessage('boundary delimiter');
-
         $this->request->headers->set('Content-Type', 'multipart/related; boundary=delimiter');
         $this->setRequestContent('body without delimiter');
 
-        $this->listener->processRequest($this->request);
+        $this->listener->onKernelRequest($this->event);
+        self::assertSame(400, $this->event->getResponse()->getStatusCode());
     }
 
     public function testSplitPartError()
     {
-        $this->expectException(MultipartProcessorException::class);
-        $this->expectExceptionMessage('Unable to determine headers limit');
-
         $this->request->headers->set('Content-Type', 'multipart/related; boundary=delimiter');
-        $this->setRequestContent("--delimiter\r\n--delimiter--");
+        $this->setRequestContent("--delimiter\r\n" .
+            "--delimiter--");
 
-        $this->listener->processRequest($this->request);
+        $this->listener->onKernelRequest($this->event);
+
+        self::assertSame(400, $this->event->getResponse()->getStatusCode());
     }
 
     public function testSplitPartError2()
     {
-        $this->expectException(MultipartProcessorException::class);
-        $this->expectExceptionMessage('Unable to determine headers limit');
-
         $this->request->headers->set('Content-Type', 'multipart/related; boundary=delimiter');
-        $this->setRequestContent("--delimiter\r\n\r\n--delimiter--");
+        $this->setRequestContent("--delimiter\r\n" .
+            "\r\n" .
+            "--delimiter--");
 
-        $this->listener->processRequest($this->request);
+        $this->listener->onKernelRequest($this->event);
 
-        self::assertEquals('', $this->request->getContent());
+        self::assertSame(400, $this->event->getResponse()->getStatusCode());
     }
 
     public function testPrimaryPartEmpty()
     {
         $this->request->headers->set('Content-Type', 'multipart/related; boundary=delimiter');
-        $this->setRequestContent("--delimiter\r\n\r\n\r\n--delimiter--");
+        $this->setRequestContent("--delimiter\r\n" .
+            "\r\n" .
+            "\r\n" .
+            "--delimiter--");
 
-        $this->listener->processRequest($this->request);
+        $this->listener->onKernelRequest($this->event);
 
         // `Content-Type` was removed from request since it was not defined in the primary part
         self::assertEquals([], $this->request->headers->all());
@@ -142,9 +108,12 @@ class MultipartRequestListenerTest extends TestCase
     public function testPrimaryPartHasContentButNotHeaders()
     {
         $this->request->headers->set('Content-Type', 'multipart/related; boundary=delimiter');
-        $this->setRequestContent("--delimiter\r\n\r\nContent\r\n--delimiter--");
+        $this->setRequestContent("--delimiter\r\n" .
+            "\r\n" .
+            "Content\r\n" .
+            "--delimiter--");
 
-        $this->listener->processRequest($this->request);
+        $this->listener->onKernelRequest($this->event);
 
         // `Content-Type` was removed from request since it was not defined in the primary part
         self::assertEquals([], $this->request->headers->all());
@@ -156,9 +125,15 @@ class MultipartRequestListenerTest extends TestCase
     public function testPrimaryPartWithHeadersButNotContent()
     {
         $this->request->headers->set('Content-Type', 'multipart/related; boundary=delimiter');
-        $this->setRequestContent("--delimiter\r\nHeader: value\r\n\r\n--delimiter--");
+        $this->setRequestContent(
+            "--delimiter\r\n" .
+            "Header: value\r\n" .
+            "\r\n" .
+            "\r\n" .
+            "--delimiter--"
+        );
 
-        $this->listener->processRequest($this->request);
+        $this->listener->onKernelRequest($this->event);
 
         // `Content-Type` was removed from request since it was not defined in the primary part
         self::assertEquals(['header' => ['value']], $this->request->headers->all());
@@ -171,12 +146,25 @@ class MultipartRequestListenerTest extends TestCase
     {
         $this->request->headers->set('Content-Type', 'multipart/related; boundary=delimiter');
         $this->request->headers->set('Other', 'value');
-        $this->setRequestContent("--delimiter\r\nHeader: value\r\nContent-Type: application/*\r\n\r\nContent\r\n--delimiter--");
+        $this->setRequestContent(
+            ""
+            . "--delimiter\r\n"
+            . "Header: value\r\n"
+            . "Content-Type: application/*\r\n"
+            . "\r\n"
+            . "Content\r\n"
+            . "--delimiter--\r\n"
+        );
 
-        $this->listener->processRequest($this->request);
+        $this->listener->onKernelRequest($this->event);
 
         // Part's headers was merged with Request's headers
-        self::assertEquals(['header' => ['value'], 'content-type' => ['application/*'], 'other' => ['value']], $this->request->headers->all());
+        self::assertEquals([
+            'header' => ['value'],
+            'content-type' => ['application/*'],
+            'other' => ['value']],
+            $this->request->headers->all()
+        );
 
         // Part's content was become Request's content
         self::assertEquals('Content', $this->request->getContent());
@@ -188,9 +176,16 @@ class MultipartRequestListenerTest extends TestCase
         $binaryContent = "\x1b\x0d\x0a\x00";
 
         $this->request->headers->set('Content-Type', 'multipart/related; boundary=delimiter');
-        $this->setRequestContent("--delimiter\r\n\r\n\r\n--delimiter\r\nContent-Disposition:attachment; filename=Nome+file.pdf\r\n\r\n$binaryContent\r\n--delimiter--");
+        $this->setRequestContent("--delimiter\r\n" .
+            "\r\n" .
+            "\r\n" .
+            "--delimiter\r\n" .
+            "Content-Disposition:attachment; filename=Nome+file.pdf\r\n" .
+            "\r\n" .
+            "$binaryContent\r\n" .
+            "--delimiter--");
 
-        $this->listener->processRequest($this->request);
+        $this->listener->onKernelRequest($this->event);
 
         /** @var UploadedFile $attachment */
         $attachment = $this->request->attributes->get('attachments')[0];
@@ -205,23 +200,39 @@ class MultipartRequestListenerTest extends TestCase
         $binaryContent = "\x1b\x0d\x0a\x00";
 
         $this->request->headers->set('Content-Type', 'multipart/related; boundary=delimiter');
-        $this->setRequestContent("--delimiter\r\n\r\n\r\n--delimiter\r\nHeader: Related\r\n\r\n$binaryContent\r\n--delimiter--");
+        $this->setRequestContent("--delimiter\r\n" .
+            "\r\n" .
+            "\r\n" .
+            "--delimiter\r\n" .
+            "Header: Related\r\n" .
+            "\r\n" .
+            "$binaryContent\r\n" .
+            "--delimiter--");
 
-        $this->listener->processRequest($this->request);
+        $this->listener->onKernelRequest($this->event);
 
-        /** @var RelatedPart $relatedParts */
-        $relatedParts = $this->request->attributes->get('related-parts')[0];
-        self::assertInstanceOf(RelatedPart::class, $relatedParts);
-        self::assertEquals($binaryContent, stream_get_contents($relatedParts->getContent(true)));
-        self::assertEquals(['header' => ['Related']], $relatedParts->getHeaders()->all());
+        /** @var RelatedPart $relatedPart */
+        $relatedPart = $this->request->attributes->get('related-parts')[1];
+        self::assertInstanceOf(StreamedPart::class, $relatedPart);
+        self::assertEquals($binaryContent, $relatedPart->getBody());
+        self::assertEquals(['header' => 'Related'], $relatedPart->getHeaders());
     }
 
     public function testFileUploads()
     {
         $this->request->headers->set('Content-Type', 'multipart/related; boundary=delimiter');
-        $this->setRequestContent("--delimiter\r\n\r\n\r\n--delimiter\r\nContent-Disposition:form-data; name=field[children][]; filename=Nome+file.pdf\r\nContent-Type:mime/type\r\nContent-Length:7\r\nContent-Md5:F15C1CAE7882448B3FB0404682E17E61\r\n\r\nContent\r\n--delimiter--");
+        $this->setRequestContent("--delimiter\r\n" .
+            "\r\n" .
+            "\r\n" .
+            "--delimiter\r\n" .
+            "Content-Disposition:form-data; name=field[children][]; filename=Nome+file.pdf\r\n" .
+            "Content-Type:mime/type\r\n" .
+            "Content-Md5:F15C1CAE7882448B3FB0404682E17E61\r\n" .
+            "\r\n" .
+            "Content\r\n" .
+            "--delimiter--\r\n");
 
-        $this->listener->processRequest($this->request);
+        $this->listener->onKernelRequest($this->event);
 
         /** @var UploadedFile $attachment */
         $attachment = $this->request->files->get('field')['children'][0];

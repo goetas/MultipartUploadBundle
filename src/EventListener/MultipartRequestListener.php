@@ -2,8 +2,7 @@
 
 namespace Goetas\MultipartUploadBundle\EventListener;
 
-use Goetas\MultipartUploadBundle\Exception\MultipartProcessorException;
-use Goetas\MultipartUploadBundle\RelatedPart;
+use Riverline\MultiPartParser\Converters\HttpFoundation;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,7 +14,7 @@ class MultipartRequestListener
     {
         try {
             $this->processRequest($event->getRequest());
-        } catch (MultipartProcessorException $e) {
+        } catch (\LogicException $e) {
             $message = 'Bad Request';
 
             if ($e->getMessage()) {
@@ -28,84 +27,63 @@ class MultipartRequestListener
         }
     }
 
-    public function processRequest(Request $request)
+    private function processRequest(Request $request)
     {
         $contentType = $request->headers->get('Content-Type');
-
         if (0 === strpos($contentType, 'multipart/related')) {
-            list($onlyContentType, $boundary) = $this->getContentTypeAndBoundary($contentType);
 
-            $parts = $this->getRequestParts($request, $boundary);
-            $relatedParts = $attachments = [];
+            $streamedPart = HttpFoundation::convert($request);
+            $request->headers->remove('Content-Type');
+            $request->headers->remove('Content-Length');
 
-            foreach ($parts as $k => $part) {
-                $parsed = $this->parsePart($part);
+            $attachments = [];
+            $relatedParts = $streamedPart->getParts();
 
-                $content = $parsed['content'];
-                $mimeType = $parsed['headers']['content-type'] ?? null;
-                $length = $parsed['headers']['content-length'] ?? null;
-                $filename = $parsed['headers']['file-name'] ?? null;
-                $formName = $parsed['headers']['form-name'] ?? null;
-                $md5Sum = $parsed['headers']['content-md5'] ?? null;
+            foreach ($relatedParts as $k => $part) {
 
                 if (0 === $k) {
-                    $request->headers->add($parsed['headers']);
-
-                    if (!$mimeType) {
-                        $request->headers->remove('Content-Type');
-                    }
-
-                    if (!$length) {
-                        $request->headers->remove('Content-Length');
-                    }
-
-                    if ('application/x-www-form-urlencoded' === $mimeType) {
+                    $request->headers->add($part->getHeaders());
+                    if ('application/x-www-form-urlencoded' === $part->getHeader('Content-Type')) {
                         $output = [];
-                        parse_str($content, $output);
+                        parse_str($part->getBody(), $output);
                         $request->request->add($output);
                     } else {
-                        $this->setRequestContent($request, $content);
+                        $this->setRequestContent($request, $part->getBody());
                     }
-                } else {
-                    if (null !== $md5Sum && md5($content) !== strtolower($md5Sum)) {
-                        $uploadError = 'MD5';
-                    }
+                    continue;
+                }
 
-                    $fp = tmpfile();
-                    fwrite($fp, $content);
-                    rewind($fp);
+                $contentDisposition = $part->getHeader('Content-Disposition');
 
-                    if ($filename) {
-                        $tmpPath = stream_get_meta_data($fp)['uri'];
-                        $file = new UploadedFile($tmpPath, $filename, $mimeType, $length ?: strlen($content), $uploadError ?? null, true);
-                        @$file->ref = $fp;
+                if ($contentDisposition === null) {
+                    continue;
+                }
 
-                        if (isset($formName)) {
-                            $formPath = $this->parseKey($formName);
+                $fp = tmpfile();
+                fwrite($fp, $part->getBody());
+                rewind($fp);
 
-                            $files = $request->files->all();
-                            $files = $this->mergeFilesArray($files, $formPath, $file);
-                            $request->files->replace($files);
-                        } else {
-                            $attachments[] = $file;
-                        }
-                    } elseif (!isset($uploadError)) {
-                        $relatedParts[] = new RelatedPart($fp, $parsed['headers']);
-                    }
+                $tmpPath = stream_get_meta_data($fp)['uri'];
+                $file = new UploadedFile($tmpPath, urldecode($part->getFileName()), $part->getMimeType(), null, true);
+                @$file->ref = $fp;
+
+                if (($formName = $this->isDispositionFormData($contentDisposition)) !== null) {
+                    $formPath = $this->parseKey($formName);
+
+                    $files = $request->files->all();
+                    $files = $this->mergeFilesArray($files, $formPath, $file);
+                    $request->files->replace($files);
+                } elseif (($fileName = $part->getFileName()) !== null) {
+                    $attachments[] = $file;
                 }
             }
 
-            if (count($attachments)) {
-                $request->attributes->set('attachments', $attachments);
-            }
-
-            if (count($relatedParts)) {
-                $request->attributes->set('related-parts', $relatedParts);
-            }
+            $request->attributes->set('attachments', $attachments);
+            $request->attributes->set('related-parts', $relatedParts);
         }
     }
 
-    protected function mergeFilesArray($array, $path, $file)
+    private function mergeFilesArray($array, $path, $file)
     {
         if (count($path) > 0) {
             $key = array_shift($path);
@@ -126,191 +104,22 @@ class MultipartRequestListener
         return $file;
     }
 
-    protected function parseKey($key)
+    private function parseKey($key)
     {
         return array_map(
-            function($v) {
+            function ($v) {
                 return trim($v, ']');
             },
             explode('[', $key)
         );
     }
 
-    /**
-     * @param string $content
-     *
-     * @throws MultipartProcessorException
-     *
-     * @return array
-     */
-    protected function parsePart($content)
+    private function isDispositionFormData($value)
     {
-        if (empty($content)) {
-            throw new MultipartProcessorException('An empty content part found');
+        if (preg_match('/(?:^|form-data;\s*)name="?([^";]+)("|;|$)/', $value, $matches)) {
+            return trim($matches[1]);
         }
-
-        $part = $this->splitHeadersFromContent($content);
-
-        $headers = $this->parseHeadersContent($part['headers']);
-
-        return [
-            'headers' => $headers,
-            'content' => $part['content'],
-        ];
-    }
-
-    /**
-     * @param string $headersContent
-     *
-     * @return array
-     */
-    protected function parseHeadersContent($headersContent)
-    {
-        $headers = [];
-
-        foreach (explode(PHP_EOL, $headersContent) as $header) {
-            $parts = explode(':', $header);
-            if (2 !== count($parts)) {
-                continue;
-            }
-
-            $name = strtolower(trim($parts[0]));
-            $value = trim($parts[1]);
-
-            $headers[$name] = $value;
-
-            if ('content-disposition' === strtolower($name)) {
-                preg_match('/(?:^|form-data;\s*)name="?([^";]+)("|;|$)/', $value, $matches);
-                if (isset($matches[1])) {
-                    $headers['form-name'] = trim($matches[1]);
-                }
-
-                preg_match('/filename="?([^";]+)("|;|$)/', $value, $matches);
-                if (isset($matches[1])) {
-                    $headers['file-name'] = urldecode(trim($matches[1]));
-                }
-            }
-        }
-
-        return $headers;
-    }
-
-    /**
-     * @param string $part
-     *
-     * @return array
-     */
-    protected function splitHeadersFromContent($part)
-    {
-        if (strlen($part) <= 3) {
-            throw new MultipartProcessorException('Unable to determine headers limit');
-        }
-
-        if (preg_match('/^[\r\n]/', $part)) {
-            $split = 0;
-        } else {
-            preg_match('/(\r\n\r\n|\r\r|\n\n)/', $part, $matches, PREG_OFFSET_CAPTURE);
-            if (!isset($matches[0][1])) {
-                throw new MultipartProcessorException('Unable to determine headers limit');
-            }
-
-            $split = $matches[0][1];
-        }
-
-        $headersContent = trim(substr($part, 0, $split));
-        $content = trim(substr($part, $split), "\r\n");
-
-        return [
-            'headers' => $headersContent,
-            'content' => $content,
-        ];
-    }
-
-    /**
-     * Get part of a resource.
-     *
-     * @param Request $request
-     * @param $boundary
-     *
-     * @throws MultipartProcessorException
-     *
-     * @return array
-     */
-    protected function getRequestParts(Request $request, $boundary)
-    {
-        $contentHandler = $request->getContent(true);
-
-        $delimiter = '--' . $boundary;
-        $endDelimiter = '--' . $boundary . '--';
-        $boundaryCount = 0;
-        $parts = [];
-
-        while (!feof($contentHandler)) {
-            $line = fgets($contentHandler);
-            if (false === $line) {
-                throw new MultipartProcessorException('An error appears while reading input');
-            }
-
-            if (0 === $boundaryCount) {
-                if (rtrim($line, "\r\n") !== $delimiter) {
-                    if (ftell($contentHandler) === strlen($line)) {
-                        throw new MultipartProcessorException('Expected boundary delimiter');
-                    }
-                } else {
-                    continue;
-                }
-                ++$boundaryCount;
-            } elseif (rtrim($line, "\r\n") === $delimiter) {
-                ++$boundaryCount;
-                continue;
-            } elseif (rtrim($line, "\r\n") === $endDelimiter) {
-                break;
-            }
-
-            if (!isset($parts[$boundaryCount])) {
-                $parts[$boundaryCount] = '';
-            }
-
-            $parts[$boundaryCount] .= $line;
-        }
-
-        if (!$parts) {
-            throw new MultipartProcessorException('An error appears while reading input');
-        }
-
-        return array_values($parts);
-    }
-
-    /**
-     * Parse the content type and boundary from Content-Type header.
-     *
-     * @param string $contentType
-     *
-     * @throws MultipartProcessorException
-     *
-     * @return array
-     */
-    protected function getContentTypeAndBoundary($contentType)
-    {
-        $contentParts = explode(';', $contentType);
-        if (2 !== count($contentParts)) {
-            throw new MultipartProcessorException('Boundary may be missing');
-        }
-
-        $contentType = trim($contentParts[0]);
-        $boundaryPart = trim($contentParts[1]);
-
-        $shouldStart = 'boundary=';
-        if (substr($boundaryPart, 0, strlen($shouldStart)) !== $shouldStart) {
-            throw new MultipartProcessorException('Boundary is not set');
-        }
-
-        $boundary = substr($boundaryPart, strlen($shouldStart));
-        if ('"' === substr($boundary, 0, 1) && '"' === substr($boundary, -1)) {
-            $boundary = substr($boundary, 1, -1);
-        }
-
-        return [$contentType, $boundary];
+        return null;
     }
 
     private function setRequestContent(Request $request, $content)
