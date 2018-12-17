@@ -12,6 +12,10 @@ env:
   - dependencies=highest
   - dependencies=lowest
 
+cache:
+  directories:
+    - $HOME/.composer/cache/files
+    -
 matrix:
   fast_finish: true
   allow_failures:
