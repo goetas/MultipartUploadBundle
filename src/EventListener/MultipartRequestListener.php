@@ -30,7 +30,7 @@ class MultipartRequestListener
     private function processRequest(Request $request)
     {
         $contentType = $request->headers->get('Content-Type');
-        if (0 === strpos($contentType, 'multipart/related')) {
+        if (0 === strpos($contentType, 'multipart/')) {
 
             $streamedPart = HttpFoundation::convert($request);
             $request->headers->remove('Content-Type');
