@@ -64,7 +64,15 @@ class MultipartRequestListener
                 rewind($fp);
 
                 $tmpPath = stream_get_meta_data($fp)['uri'];
-                $file = new UploadedFile($tmpPath, urldecode($part->getFileName()), $part->getMimeType(), null, true);
+
+
+                $ref = new \ReflectionClass('Symfony\Component\HttpFoundation\File\UploadedFile');
+                $params = $ref->getConstructor()->getParameters();
+                if ('error' === $params[3]->getName()) { // symfony 4
+                    $file = new UploadedFile($tmpPath, urldecode($part->getFileName()), $part->getMimeType(), null, true);
+                } else { // symfony < 4
+                    $file = new UploadedFile($tmpPath, urldecode($part->getFileName()), $part->getMimeType(), filesize($tmpPath), null, false);
+                }
                 @$file->ref = $fp;
 
                 if (($formName = $this->isDispositionFormData($contentDisposition)) !== null) {
