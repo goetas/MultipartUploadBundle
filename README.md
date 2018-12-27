@@ -105,17 +105,41 @@ Parts without a `filename` will be treated as `RelatedPart` object.
 $part = $request->attributes->get('related-parts')[0];
 ```
 
-Get part's headers
+- Get part's headers
 ```php
 $headers = $part->getHeaders()->all();
 ```
 
-Get part's content
+- Get part's content
 ```php
 $content = $part->getContent();
 ```
 
-Get part's content as resource
+- Get part's content as resource
 ```php
 $content = stream_get_contents($part->getContent(true));
 ```
+
+- First part injected
+
+By default, when a message is `multipart/*`, the first part will become the Symfony message content.
+You can disable this by setting `first_part_as_default` to `false`.
+```php
+$content = $request->getContent(); // content of the first part, not the whole message
+```
+
+## Configurations
+
+```yaml
+goetas_multipart_upload:
+  first_part_as_default: true
+```
+
+## Note 
+
+The code in this project is provided under the 
+[MIT](https://opensource.org/licenses/MIT) license. 
+For professional support 
+contact [goetas@gmail.com](mailto:goetas@gmail.com) 
+or visit [https://www.goetas.com](https://www.goetas.com)
+

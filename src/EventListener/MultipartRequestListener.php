@@ -10,6 +10,16 @@ use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 
 class MultipartRequestListener
 {
+    /**
+     * @var bool
+     */
+    private $injectFirstPart;
+
+    public function __construct(bool $injectFirstPart = true)
+    {
+        $this->injectFirstPart = $injectFirstPart;
+    }
+
     public function onKernelRequest(GetResponseEvent $event)
     {
         try {
@@ -33,15 +43,17 @@ class MultipartRequestListener
         if (0 === strpos($contentType, 'multipart/')) {
 
             $streamedPart = HttpFoundation::convert($request);
-            $request->headers->remove('Content-Type');
-            $request->headers->remove('Content-Length');
 
+            if ($this->injectFirstPart === true) {
+                $request->headers->remove('Content-Type');
+                $request->headers->remove('Content-Length');
+            }
             $attachments = [];
             $relatedParts = $streamedPart->getParts();
 
             foreach ($relatedParts as $k => $part) {
 
-                if (0 === $k) {
+                if ($this->injectFirstPart === true && 0 === $k) {
                     $request->headers->add($part->getHeaders());
                     if ('application/x-www-form-urlencoded' === $part->getHeader('Content-Type')) {
                         $output = [];

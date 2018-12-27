@@ -22,5 +22,23 @@ class MultipartRequestListenerTest extends AbstractExtensionTestCase
             'kernel.event_listener',
             ['event' => 'kernel.request', 'method' => 'onKernelRequest', 'priority' => 200]
         );
+        $this->assertContainerBuilderHasServiceDefinitionWithArgument(
+            'goetas.multipart_upload.request_listener',
+            0,
+            true
+        );
+    }
+
+    public function testDoNotInjectFirstPart()
+    {
+        $this->load([
+            'first_part_as_default' => false
+        ]);
+
+        $this->assertContainerBuilderHasServiceDefinitionWithArgument(
+            'goetas.multipart_upload.request_listener',
+            0,
+            false
+        );
     }
 }
