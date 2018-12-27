@@ -218,6 +218,30 @@ class MultipartRequestListenerTest extends TestCase
         self::assertEquals(['header' => 'Related'], $relatedPart->getHeaders());
     }
 
+    public function testFormDataWithoutFilename()
+    {
+        $this->request->headers->set('Content-Type', 'multipart/related; boundary=delimiter');
+        $this->setRequestContent("--delimiter".
+            "\r\n" .
+            "\r\n" .
+            "\r\n" .
+            "--delimiter".
+            "\r\n" .
+            "Content-Disposition:form-data; name=field[children][]". "\r\n" .
+            "Content-Type:mime/type". "\r\n" .
+            "Content-Length:7". "\r\n" .
+            "Content-Md5:F15C1CAE7882448B3FB0404682E17E61". "\r\n".
+            "\r\n" .
+            "Content". "\r\n" .
+            "--delimiter--"
+        );
+
+        $this->listener->onKernelRequest($this->event);
+
+        $value = $this->request->request->get('field')['children'][0];
+        self::assertEquals('Content', $value);
+    }
+
     public function testFileUploads()
     {
         $this->request->headers->set('Content-Type', 'multipart/related; boundary=delimiter');

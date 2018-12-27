@@ -59,30 +59,38 @@ class MultipartRequestListener
                     continue;
                 }
 
-                $fp = tmpfile();
-                fwrite($fp, $part->getBody());
-                rewind($fp);
+                $fileName = $part->getFileName();
 
-                $tmpPath = stream_get_meta_data($fp)['uri'];
+                if ($fileName!== null) {
+                    $fp = tmpfile();
+                    fwrite($fp, $part->getBody());
+                    rewind($fp);
 
+                    $tmpPath = stream_get_meta_data($fp)['uri'];
 
-                $ref = new \ReflectionClass('Symfony\Component\HttpFoundation\File\UploadedFile');
-                $params = $ref->getConstructor()->getParameters();
-                if ('error' === $params[3]->getName()) { // symfony 4
-                    $file = new UploadedFile($tmpPath, urldecode($part->getFileName()), $part->getMimeType(), null, true);
-                } else { // symfony < 4
-                    $file = new UploadedFile($tmpPath, urldecode($part->getFileName()), $part->getMimeType(), filesize($tmpPath), null, false);
+                    $ref = new \ReflectionClass('Symfony\Component\HttpFoundation\File\UploadedFile');
+                    $params = $ref->getConstructor()->getParameters();
+                    if ('error' === $params[3]->getName()) { // symfony 4
+                        $file = new UploadedFile($tmpPath, urldecode($fileName), $part->getMimeType(), null, true);
+                    } else { // symfony < 4
+                        $file = new UploadedFile($tmpPath, urldecode($fileName), $part->getMimeType(), filesize($tmpPath), null, false);
+                    }
+                    @$file->ref = $fp;
+                    $attachments[] = $file;
                 }
-                @$file->ref = $fp;
 
                 if (($formName = $this->isDispositionFormData($contentDisposition)) !== null) {
                     $formPath = $this->parseKey($formName);
 
-                    $files = $request->files->all();
-                    $files = $this->mergeFilesArray($files, $formPath, $file);
-                    $request->files->replace($files);
-                } elseif (($fileName = $part->getFileName()) !== null) {
-                    $attachments[] = $file;
+                    if ($fileName !== null) {
+                        $files = $request->files->all();
+                        $files = $this->mergeFormArray($files, $formPath, $file);
+                        $request->files->replace($files);
+                    } else {
+                        $data = $request->request->all();
+                        $data = $this->mergeFormArray($data, $formPath, $part->getBody());
+                        $request->request->replace($data);
+                    }
                 }
             }
 
@@ -91,7 +99,7 @@ class MultipartRequestListener
         }
     }
 
-    private function mergeFilesArray($array, $path, $file)
+    protected function mergeFormArray($array, $path, $data)
     {
         if (count($path) > 0) {
             $key = array_shift($path);
@@ -101,15 +109,15 @@ class MultipartRequestListener
             }
 
             if (!empty($key)) {
-                $array[$key] = $this->mergeFilesArray($array[$key] ?? [], $path, $file);
+                $array[$key] = $this->mergeFormArray($array[$key] ?? [], $path, $data);
             } else {
-                $array[] = $file;
+                $array[] = $data;
             }
 
             return $array;
         }
 
-        return $file;
+        return $data;
     }
 
     private function parseKey($key)
