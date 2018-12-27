@@ -5,10 +5,10 @@
 [![Code Coverage](https://scrutinizer-ci.com/g/goetas/MultipartUploadBundle/badges/coverage.png)](https://scrutinizer-ci.com/g/goetas/MultipartUploadBundle/)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/goetas/MultipartUploadBundle/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/goetas/MultipartUploadBundle/?branch=master)
 
-Symfony `multipart/related` content type handler.
+Symfony `multipart/related`, `multipart/alternative` and `multipart/mixed` content type handler.
 
 This bundle implements a subset of the [https://www.w3.org/Protocols/rfc1341/7_2_Multipart.html](https://www.w3.org/Protocols/rfc1341/7_2_Multipart.html) specifications 
-and allows you to deal with `Content-Type: multipart-related;` requests with Symfony.
+and allows you to deal with `Content-Type: multipart/*;` requests with Symfony.
 
 ## Install
 Run `composer require goetas/multipart-upload-bundle`
@@ -17,11 +17,11 @@ Add bundle to symfony (if not using symfony/flex)
 
 ## Request format
 
-A `multipart-related` request could look like this:
+A `multipart/related` request could look like this:
 
 ```
 Host: localhost
-Content-Type: multipart-related; boundary=19D523FB
+Content-Type: multipart/related; boundary=19D523FB
 
 --19D523FB
 Content-Type: application/json
