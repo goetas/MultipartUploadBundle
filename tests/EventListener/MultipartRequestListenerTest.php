@@ -38,6 +38,37 @@ class MultipartRequestListenerTest extends TestCase
         $this->event = new GetResponseEvent(new TestKernel(), $this->request, HttpKernelInterface::MASTER_REQUEST);
     }
 
+    public function testPrimaryNotInjectedAsMain()
+    {
+        $this->listener = new MultipartRequestListener(false);
+
+        $this->request->headers->set('Content-Type', 'multipart/related; boundary=delimiter');
+        $this->request->headers->set('Other', 'value');
+        $this->setRequestContent(
+            $content = "--delimiter\r\n"
+                . "Header: value\r\n"
+                . "Content-Type: application/*\r\n"
+                . "\r\n"
+                . "Content\r\n"
+                . "--delimiter--\r\n"
+        );
+
+        $this->listener->onKernelRequest($this->event);
+
+        // headers not changed
+        self::assertEquals([
+            'content-type' => ['multipart/related; boundary=delimiter'],
+            'other' => ['value']
+        ],
+            $this->request->headers->all()
+        );
+
+        self::assertCount(1, $this->request->attributes->get('related-parts'));
+
+        // request content not changed
+        self::assertEquals($content, $this->request->getContent());
+    }
+
     /**
      * @doesNotPerformAssertions
      */
@@ -221,18 +252,18 @@ class MultipartRequestListenerTest extends TestCase
     public function testFormDataWithoutFilename()
     {
         $this->request->headers->set('Content-Type', 'multipart/related; boundary=delimiter');
-        $this->setRequestContent("--delimiter".
+        $this->setRequestContent("--delimiter" .
             "\r\n" .
             "\r\n" .
             "\r\n" .
-            "--delimiter".
+            "--delimiter" .
             "\r\n" .
-            "Content-Disposition:form-data; name=field[children][]". "\r\n" .
-            "Content-Type:mime/type". "\r\n" .
-            "Content-Length:7". "\r\n" .
-            "Content-Md5:F15C1CAE7882448B3FB0404682E17E61". "\r\n".
+            "Content-Disposition:form-data; name=field[children][]" . "\r\n" .
+            "Content-Type:mime/type" . "\r\n" .
+            "Content-Length:7" . "\r\n" .
+            "Content-Md5:F15C1CAE7882448B3FB0404682E17E61" . "\r\n" .
             "\r\n" .
-            "Content". "\r\n" .
+            "Content" . "\r\n" .
             "--delimiter--"
         );
 

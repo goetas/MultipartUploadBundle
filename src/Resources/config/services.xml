@@ -4,7 +4,6 @@
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
         <service id="goetas.multipart_upload.request_listener" class="Goetas\MultipartUploadBundle\EventListener\MultipartRequestListener">
-            <argument type="string"></argument>
             <tag name="kernel.event_listener" event="kernel.request" method="onKernelRequest" priority="200"/>
         </service>
     </services>
