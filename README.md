@@ -60,7 +60,7 @@ X-Custom-Header: header value
 ### Controller
 Body will not be decoded automatically, you can decode it by yourself or use [FOSRestBundle](https://github.com/FriendsOfSymfony/FOSRestBundle) to handle it transparently 
 ```php
-public function (Request $request)
+public function indexAction(Request $request)
 {
     if ('application/json' == $request->headers->get('content-type')) {
         $data = json_decode($request->getContent(), true);
