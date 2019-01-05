@@ -100,7 +100,8 @@ $attachment = $request->attributes->get('attachments')[0];
 ```
 
 ### Related Parts
-Parts without a `filename` will be treated as `RelatedPart` object.
+Parts without a `filename` will be treated as `Riverline\MultiPartParser\StreamedPart` object.
+Will be possible to access as well all the parts trough the `related-parts` attribute.
 ```php
 $part = $request->attributes->get('related-parts')[0];
 ```
