@@ -3,7 +3,6 @@
 namespace Goetas\MultipartUploadBundle\EventListener;
 
 use Goetas\MultipartUploadBundle\Exception\MultipartProcessorException;
-use Goetas\MultipartUploadBundle\RelatedPart;
 use Goetas\MultipartUploadBundle\TestKernel;
 use PHPUnit\Framework\TestCase;
 use Riverline\MultiPartParser\StreamedPart;
@@ -242,7 +241,6 @@ class MultipartRequestListenerTest extends TestCase
 
         $this->listener->onKernelRequest($this->event);
 
-        /** @var RelatedPart $relatedPart */
         $relatedPart = $this->request->attributes->get('related-parts')[1];
         self::assertInstanceOf(StreamedPart::class, $relatedPart);
         self::assertEquals($binaryContent, $relatedPart->getBody());
