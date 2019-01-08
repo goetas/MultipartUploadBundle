@@ -12,10 +12,10 @@ class Configuration implements ConfigurationInterface
     {
         $tb = new TreeBuilder('goetas_multipart_upload');
 
-        if (method_exists($tb, 'goetas_multipart_upload')) {
+        if (method_exists($tb, 'getRootNode')) {
             $root = $tb->getRootNode()->children();
         } else {
-            $root = $tb->root('jms_serializer')->children();
+            $root = $tb->root('goetas_multipart_upload')->children();
         }
 
         $root
