@@ -85,7 +85,7 @@ class MultipartRequestListener
                     if ('error' === $params[3]->getName()) { // symfony 4
                         $file = new UploadedFile($tmpPath, urldecode($fileName), $part->getMimeType(), null, true);
                     } else { // symfony < 4
-                        $file = new UploadedFile($tmpPath, urldecode($fileName), $part->getMimeType(), filesize($tmpPath), null, false);
+                        $file = new UploadedFile($tmpPath, urldecode($fileName), $part->getMimeType(), filesize($tmpPath), null, true);
                     }
                     @$file->ref = $fp;
                     $attachments[] = $file;

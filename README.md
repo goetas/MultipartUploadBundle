@@ -56,6 +56,7 @@ X-Custom-Header: header value
 
 --19D523FB--
 ```
+
 ## Usage
 ### Controller
 Body will not be decoded automatically, you can decode it by yourself or use [FOSRestBundle](https://github.com/FriendsOfSymfony/FOSRestBundle) to handle it transparently 

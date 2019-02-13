@@ -293,7 +293,7 @@ class MultipartRequestListenerTest extends TestCase
         self::assertEquals('Content', file_get_contents($attachment->getPathname()));
         self::assertEquals('Nome file.pdf', $attachment->getClientOriginalName());
         self::assertEquals('mime/type', $attachment->getClientMimeType());
-        self::assertEquals(0, $attachment->getError());
+        self::assertTrue($attachment->isValid());
     }
 
     private function setRequestContent($content)
