@@ -37,6 +37,37 @@ class MultipartRequestListenerTest extends TestCase
         $this->event = new GetResponseEvent(new TestKernel(), $this->request, HttpKernelInterface::MASTER_REQUEST);
     }
 
+    public function testFormDataIsNotTouched()
+    {
+        $this->listener = new MultipartRequestListener(false);
+
+        $this->request->headers->set('Content-Type', 'multipart/form-data; boundary=delimiter');
+        $this->request->headers->set('Other', 'value');
+        $this->setRequestContent(
+            $content = "--delimiter\r\n"
+                . "Header: value\r\n"
+                . "Content-Type: application/*\r\n"
+                . "\r\n"
+                . "Content\r\n"
+                . "--delimiter--\r\n"
+        );
+
+        $this->listener->onKernelRequest($this->event);
+
+        // headers not changed
+        self::assertEquals([
+            'content-type' => ['multipart/form-data; boundary=delimiter'],
+            'other' => ['value']
+        ],
+            $this->request->headers->all()
+        );
+
+        self::assertFalse($this->request->attributes->has('related-parts'));
+
+        // request content not changed
+        self::assertEquals($content, $this->request->getContent());
+    }
+
     public function testPrimaryNotInjectedAsMain()
     {
         $this->listener = new MultipartRequestListener(false);
