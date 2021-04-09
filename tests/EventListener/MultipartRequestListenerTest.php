@@ -8,14 +8,14 @@ use PHPUnit\Framework\TestCase;
 use Riverline\MultiPartParser\StreamedPart;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 
 class MultipartRequestListenerTest extends TestCase
 {
     /**
-     * @var GetResponseEvent
+     * @var RequestEvent
      */
     private $event;
 
@@ -29,12 +29,12 @@ class MultipartRequestListenerTest extends TestCase
      */
     private $request;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->listener = new MultipartRequestListener();
 
         $this->request = new Request();
-        $this->event = new GetResponseEvent(new TestKernel(), $this->request, HttpKernelInterface::MASTER_REQUEST);
+        $this->event = new RequestEvent(new TestKernel(), $this->request, HttpKernelInterface::MASTER_REQUEST);
     }
 
     public function testFormDataIsNotTouched()

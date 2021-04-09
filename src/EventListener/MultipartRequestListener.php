@@ -6,7 +6,7 @@ use Riverline\MultiPartParser\Converters\HttpFoundation;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Event\GetResponseEvent;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
 
 class MultipartRequestListener
 {
@@ -20,7 +20,7 @@ class MultipartRequestListener
         $this->injectFirstPart = $injectFirstPart;
     }
 
-    public function onKernelRequest(GetResponseEvent $event)
+    public function onKernelRequest(RequestEvent $event)
     {
         try {
             $this->processRequest($event->getRequest());
