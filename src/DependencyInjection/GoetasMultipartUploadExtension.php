@@ -20,7 +20,7 @@ class GoetasMultipartUploadExtension extends Extension
         $loader = new Loader\XmlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('services.xml');
 
-        $container->getDefinition('goetas.multipart_upload.request_listener')
+        $container->getDefinition('goetas.multipart_upload.request_handler')
             ->setArguments([$config['first_part_as_default']]);
     }
 }
