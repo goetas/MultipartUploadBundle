@@ -21,7 +21,7 @@ class MultipartRequestHandler
     public function processRequest(Request $request)
     {
         $contentType = $request->headers->get('Content-Type');
-        if (0 !== strpos($contentType, 'multipart/') || false !== strpos($contentType, 'multipart/form-data')) {
+        if (null === $contentType || 0 !== strpos($contentType, 'multipart/') || false !== strpos($contentType, 'multipart/form-data')) {
             return;
         }
 
