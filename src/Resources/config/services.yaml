@@ -1,0 +1,10 @@
+services:
+    goetas.multipart_upload.request_handler:
+        class: Goetas\MultipartUploadBundle\Service\MultipartRequestHandler
+
+    goetas.multipart_upload.request_listener:
+        class: Goetas\MultipartUploadBundle\EventListener\MultipartRequestListener
+        arguments:
+            $requestHandler: '@goetas.multipart_upload.request_handler'
+        tags:
+            - { name: kernel.event_listener, event: kernel.request, method: onKernelRequest, priority: 200 }
