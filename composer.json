@@ -21,9 +21,9 @@
   },
   "require": {
     "php": "^8.0",
-    "symfony/http-foundation": "^6.0|^7.0",
-    "symfony/http-kernel": "^6.0|^7.0",
-    "symfony/dependency-injection": "^6.0|^7.0",
+    "symfony/http-foundation": "^6.0|^7.0|^8.0",
+    "symfony/http-kernel": "^6.0|^7.0|^8.0",
+    "symfony/dependency-injection": "^6.0|^7.0|^8.0",
     "riverline/multipart-parser": "^2.1"
   },
   "require-dev": {
